@@ -1,0 +1,68 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include:
+      - master
+      - refs/tags/*
+stages:
+  - stage: Build
+    jobs:
+      - job: install_build_rust_linux
+        displayName: "build on linux"
+        variables:
+          RUST_TOOLCHAIN: stable
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - script: |
+              curl -sSf https://sh.rustup.rs | sh -s -- --default-toolchain $RUST_TOOLCHAIN -y
+            displayName: 'download and install rustup script'
+          - script: "PATH=$PATH:$HOME/.cargo/bin cargo build --release"
+            displayName: "cargo build"
+          - publish: "$(System.DefaultWorkingDirectory)/target/release/idcfcli"
+            artifact: idcfcli_exe_linux
+      - job: install_build_rust_windows
+        displayName: "build on windows"
+        pool:
+          vmImage: windows-2019
+        steps:
+          - script: |
+              curl -sSf -o rustup-init.exe https://win.rustup.rs
+              rustup-init.exe -y --default-toolchain stable
+              set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+            displayName: "installing rustup"
+          - script: "cargo build --release"
+          - publish: "$(System.DefaultWorkingDirectory)/target/release/idcfcli.exe"
+            artifact: idcfcli_exe_windows
+          - publish: "$(System.DefaultWorkingDirectory)/target/release/idcfcli.pdb"
+            artifact: idcfcli_exe_windows_pdb
+  - stage: Release
+    condition: "startsWith(variables['Build.SourceBranch'], 'refs/tags/')"
+    jobs:
+      - job: github_release
+        displayName: "Github Release"
+        pool:
+          vmImage: 'ubuntu-latest'
+          steps:
+            - download: artifact_linux
+              artifact: idcfcli_exe_linux
+              patterns: "**/idcfcli*"
+            - download: artifact_windows
+              artifact: idcfcli_exe_windows
+              patterns: "**/idcfcli*"
+            - download: artifact_windows_pdb
+              artifact: idcfcli_exe_windows_pdb
+              patterns: "**/idcfcli*"
+            - task: GitHubRelease@0
+              displayName: "releasing github"
+              inputs:
+                gitHubConnection: "itn3000"
+                action: create
+                target: "$(Build.SourceVersion)"
+                assets: "$(Pipeline.Workspace)/idcfcli*/**/*"
+                isDraft: true
+
