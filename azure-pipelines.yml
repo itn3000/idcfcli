@@ -43,7 +43,7 @@ stages:
   - stage: Release
     condition: "startsWith(variables['Build.SourceBranch'], 'refs/tags/')"
     jobs:
-      - deployment: github-release
+      - deployment: github_release
         displayName: "Github Release"
         pool:
           vmImage: Ubuntu-18.04
