@@ -10,6 +10,8 @@ stages:
     jobs:
       - job: install_build_rust_linux
         displayName: "build on linux"
+        variables:
+          RUST_TOOLCHAIN: stable
         pool:
           vmImage: 'ubuntu-latest'
         steps:
