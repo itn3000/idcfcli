@@ -45,6 +45,7 @@ stages:
     jobs:
       - deployment: github_release
         displayName: "Github Release"
+        environment: "release.idcfcli"
         pool:
           vmImage: Ubuntu-18.04
         strategy:
