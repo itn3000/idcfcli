@@ -46,7 +46,7 @@ stages:
       - job: github_release
         displayName: "Github Release"
         pool:
-          vmImage: Ubuntu-18.04
+          vmImage: 'ubuntu-latest'
           steps:
             - download: artifact_linux
               artifact: idcfcli_exe_linux
