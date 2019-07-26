@@ -13,7 +13,6 @@ use crypto::mac::Mac;
 use std::convert::AsRef;
 use std::convert::From;
 use std::io::Read;
-use std::io::Write;
 use std::iter::Iterator;
 
 use super::encode_form_url_utf8;
