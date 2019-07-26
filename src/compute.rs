@@ -19,6 +19,9 @@ use std::iter::Iterator;
 use super::encode_form_url_utf8;
 use super::ApplicationError;
 use super::InvalidParameter;
+use super::GenericError;
+
+use super::keyvalue;
 
 struct CommandOptions {
     method: String,
@@ -154,77 +157,16 @@ pub fn create_app<'a, 'b>() -> App<'a, 'b> {
         )
 }
 
-fn create_querystring<TKey, TValue>(
-    command: &str,
-    apikey: &str,
-    parameters: &Vec<(TKey, TValue)>,
-) -> String
-where
-    TKey: std::string::ToString + std::cmp::Ord,
-    TValue: std::string::ToString,
-{
-    let mut queryvalues: Vec<(String, String)> = parameters
-        .iter()
-        .map(|(x, y)| (x.to_string(), y.to_string()))
-        .collect();
-    queryvalues.push((String::from("command"), String::from(command)));
-    queryvalues.push(("apikey".to_owned(), apikey.to_owned()));
-    queryvalues.sort_by(|(x1, _), (x2, _)| x1.cmp(x2));
-
-    let x: Vec<String> = queryvalues
-        .iter()
-        .map(|(x, y)| {
-            format!(
-                "{}={}",
-                super::encode_form_url_utf8(x),
-                super::encode_form_url_utf8(y)
-            )
-        })
-        .collect();
-    x.join("&")
-}
-
-fn get_keyvalue_from_json_file(filepath: &str) -> Result<Vec<(String, String)>, ApplicationError> {
-    let f = match std::fs::File::open(filepath) {
-        Ok(v) => v,
-        Err(e) => return Err(ApplicationError::IoError(e)),
-    };
-    let v: serde_json::Value = match serde_json::from_reader(f) {
-        Ok(v) => v,
-        Err(e) => return Err(ApplicationError::SerdeError(e)),
-    };
-    match v {
-        serde_json::Value::Object(o) => {
-            let ret: Vec<(String, String)> = o
-                .iter()
-                .map(|(k, v)| (String::from(k), String::from(v.as_str().unwrap())))
-                .collect();
-            Ok(ret)
-        }
-        _ => Err(ApplicationError::IoError(std::io::Error::new(
-            std::io::ErrorKind::InvalidData,
-            "invalid json format",
-        ))),
-    }
-}
-
-fn get_keyvalue_from_strings(elements: &[&str]) -> Result<Vec<(String, String)>, ApplicationError> {
-    let ret: Vec<(String, String)> = elements
-        .iter()
-        .filter(|x| x.contains("="))
-        .map(|x| {
-            let splitted: Vec<&str> = x.splitn(2, "=").collect();
-            (splitted[0].to_owned(), splitted[1].to_owned())
-        })
-        .collect();
-    Ok(ret)
-}
-
 fn get_signature(query_string: &str, secret_key: &str) -> Result<String, ApplicationError> {
     let hash = crypto::sha1::Sha1::new();
     let mut hmac = crypto::hmac::Hmac::new(hash, secret_key.as_bytes());
-    let inputstr = query_string.to_lowercase().replace("+", "%20");
-    info!("input string = {}", inputstr);
+    let inputstr = query_string.to_lowercase()
+        .replace("+", "%20")
+        .replace("%2a", "*")
+        .replace("%5b", "[")
+        .replace("%5d", "]")
+        .replace("%2e", ".");
+    info!("signature input string = {}, {}", query_string, inputstr);
     hmac.input(inputstr.as_bytes());
     let hashed = Vec::from(hmac.result().code());
     return Ok(encode_form_url_utf8(base64::encode(&hashed).as_ref()));
@@ -234,11 +176,11 @@ fn get_parameters<'a>(
     app: &clap::ArgMatches<'a>,
 ) -> Result<Vec<(String, String)>, ApplicationError> {
     match app.value_of("input-json") {
-        Some(v) => Ok(get_keyvalue_from_json_file(v)?),
+        Some(v) => Ok(keyvalue::get_keyvalue_from_json_file(v)?),
         None => match app.values_of("keyvalue") {
             Some(v) => {
                 let vec: Vec<&str> = v.collect();
-                get_keyvalue_from_strings(&vec)
+                keyvalue::get_keyvalue_from_strings(&vec)
             }
             None => Ok(Vec::new() as Vec<(String, String)>),
         },
@@ -288,7 +230,8 @@ pub fn execute<'a>(app: &clap::ArgMatches<'a>) -> Result<(), ApplicationError> {
     let option = get_command_option(&app)?;
     parameters.sort_by(|(x1, _), (x2, _)| x1.cmp(x2));
     let query_string =
-        create_querystring(option.method.as_str(), option.apikey.as_str(), &parameters);
+        keyvalue::create_querystring(option.method.as_str(), option.apikey.as_str(), &parameters);
+    info!("querystring = {}", query_string);
     let signature = get_signature(&query_string, &option.secretkey)?;
     let client: reqwest::Client = reqwest::ClientBuilder::new()
         .use_default_tls()
@@ -308,16 +251,23 @@ pub fn execute<'a>(app: &clap::ArgMatches<'a>) -> Result<(), ApplicationError> {
     };
     match client
         .request(reqwest::Method::GET, requesturl)
-        .header("Accept", "application/json")
         .send()
     {
         Ok(v) => {
-            let v: reqwest::Response = v;
-            info!("request success:{:?}", v);
-            output_response(v, option.output_path())?;
+            let mut v: reqwest::Response = v;
+            if v.status().is_success() {
+                info!("request success:{:?}", v);
+                output_response(v, option.output_path())?;
+            } else {
+                eprintln!("response error:{:?}", v);
+                // output_response(v, option.output_path())?;
+                let mut body = String::new();
+                v.read_to_string(&mut body).unwrap();
+                return Err(ApplicationError::GenericError(GenericError::new(format!("response error:{}, {}", v.status(), body).as_str(), "compute::execute")))
+            }
         }
         Err(e) => {
-            println!("reqwest error:{:?}", e);
+            eprintln!("reqwest error:{:?}", e);
             return Err(ApplicationError::ReqwestError(e));
         }
     };

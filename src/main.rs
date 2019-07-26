@@ -11,15 +11,9 @@ extern crate log;
 
 const VERSION_STRING: &str = "0.1.0";
 
-use clap::{App, Arg};
-use crypto::mac::Mac;
-use std::convert::AsRef;
-use std::convert::From;
-use std::iter::Iterator;
-use std::io::Write;
-use std::io::Read;
-
+use clap::{App};
 mod compute;
+mod keyvalue;
 
 #[derive(Debug)]
 pub struct InvalidParameter {
@@ -37,12 +31,28 @@ impl InvalidParameter {
 }
 
 #[derive(Debug)]
+pub struct GenericError {
+    description: String,
+    location: String,
+}
+
+impl GenericError {
+    pub fn new(description: &str, location: &str) -> GenericError {
+        GenericError {
+            description: description.to_owned(),
+            location: location.to_owned()
+        }
+    }
+}
+
+#[derive(Debug)]
 pub enum ApplicationError {
     IoError(std::io::Error),
     ParameterError(InvalidParameter),
     SerdeError(serde_json::Error),
     ReqwestError(reqwest::Error),
     ReqwestParseError(reqwest::UrlError),
+    GenericError(GenericError),
 }
 
 fn encode_form_url_utf8(value: &str) -> String {
@@ -54,6 +64,7 @@ fn encode_form_url_utf8(value: &str) -> String {
             || (b >= &b'0' && b <= &b'9')
             || (b == &b'-')
             || (b == &b'_')
+            || (b == &b'.')
         {
             let b: u8 = *b;
             ret.push(b as char);
