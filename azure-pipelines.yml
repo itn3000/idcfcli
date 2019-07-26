@@ -8,14 +8,35 @@ trigger:
 stages:
   - stage: Build
     jobs:
-      - job: hogejob
+      - job: install_build_rust_linux
+        displayName: "build on linux"
+        variables:
+          PATH: "$(PATH):$(HOME)/.cargo/bin"
         pool:
           vmImage: 'ubuntu-latest'
         steps:
-          - script: echo Hello, world!
-            displayName: 'Run a one-line script'
-
+          - script: curl -sSf https://sh.rustup.rs | sh -s -- --default-toolchain $RUST_TOOLCHAIN -y
+            displayName: 'download and install rustup script'
           - script: |
               echo Add other tasks to build, test, and deploy your project.
               echo See https://aka.ms/yaml
             displayName: 'Run a multi-line script'
+          - script: "cargo build --release"
+            displayName: "cargo build"
+          - publish: "$(System.DefaultWorkingDirectory)/target/release/idcfcli"
+            artifact: idcfcli_exe_linux
+      - job: install_build_rust_windows
+        displayName: "build on windows"
+        pool:
+          vmImage: windows-2019
+        steps:
+          - script: |
+              curl -sSf -o rustup-init.exe https://win.rustup.rs
+              rustup-init.exe -y --default-toolchain stable
+              set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+            displayName: "installing rustup"
+          - script: "cargo build --release"
+          - publish: "$(System.DefaultWorkingDirectory)/target/release/idcfcli"
+            artifact: idcfcli_exe_windows
+
+
