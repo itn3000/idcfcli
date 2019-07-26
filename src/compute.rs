@@ -101,20 +101,21 @@ fn get_command_option(app: &clap::ArgMatches) -> Result<CommandOptions, Applicat
 pub fn create_app<'a, 'b>() -> App<'a, 'b> {
     App::new("compute")
         .about("IDCF compute API client")
+        .after_help("you can get detailed API reference in https://www.idcf.jp/api-docs/apis/?id=docs_compute_reference")
         .version(super::VERSION_STRING)
         .arg(
             Arg::with_name("apikey")
                 .short("a")
                 .long("apikey")
                 .value_name("API_KEY")
-                .help("IDCF api key"),
+                .help("IDCF api key, if not set, using IDCF_API_KEY environment variable"),
         )
         .arg(
             Arg::with_name("secretkey")
                 .short("s")
                 .long("secretkey")
                 .value_name("SECRET_KEY")
-                .help("IDCF secret key"),
+                .help("IDCF secret key, if not set, using IDCF_SECRET_KEY environment variable"),
         )
         .arg(
             Arg::with_name("input-json")
@@ -138,6 +139,7 @@ pub fn create_app<'a, 'b>() -> App<'a, 'b> {
                 .short("m")
                 .long("method")
                 .value_name("METHOD")
+                .help("API method name, REQUIRED")
                 .required(true),
         )
         .arg(
