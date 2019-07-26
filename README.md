@@ -25,7 +25,7 @@ SUBCOMMANDS:
 
 # Usage of compute
 
-IDCF compute API has responsible to manupilate IDCF computing.
+IDCF compute API is related on manupilating IDCF computing(Virtual Machines).
 you can get help by `compute --help`.Here is the output.
 
 ```
@@ -55,7 +55,7 @@ you can get detailed API reference in https://www.idcf.jp/api-docs/apis/?id=docs
 
 ### Get list of templates
 
-`idcfcli compute -m listTemplates -k templatefilter=featured`
+`idcfcli compute -m listTemplates -k templatefilter=featured -s [SECRET_KEY] -a [API_KEY]`
 
 ### Set display name to public IP address resource by JSON input file
 
@@ -68,9 +68,9 @@ you can get detailed API reference in https://www.idcf.jp/api-docs/apis/?id=docs
     "tags[0].value":"[desired name]"
 }
 ```
-2. execute `idcfcli compute -m createTags -i path/to/json`
+2. execute `idcfcli compute -m createTags -i path/to/json -s [SECRET_KEY] -a [API_KEY]`
 3. save output job ID
     `{"createtagsresponse":{"jobid":"[job ID]"}}`
-4. execute `idcfcli compute -m queryAsyncJobResult -k jobid=[job ID]`
+4. execute `idcfcli compute -m queryAsyncJobResult -k jobid=[job ID] -s [SECRET_KEY] -a [API_KEY]`
     Asynchronous API must be called [queryAsyncJobResult](https://cloudstack.apache.org/api/apidocs-4.8/user/queryAsyncJobResult.html) to complete job.
 
