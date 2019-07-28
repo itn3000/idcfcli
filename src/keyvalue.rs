@@ -27,7 +27,7 @@ pub fn get_keyvalue_from_json_file(filepath: &str) -> Result<Vec<(String, String
         serde_json::Value::Object(o) => {
             let ret: Vec<(String, String)> = o
                 .iter()
-                .map(|(k, v)| (String::from(k), match v {
+                .map(|(k, v)| (k.clone(), match v {
                     serde_json::Value::String(s) => s.clone(),
                     serde_json::Value::Array(ar) => serde_json::to_string(ar).unwrap(),
                     serde_json::Value::Number(num) => serde_json::to_string(num).unwrap(),
@@ -49,6 +49,7 @@ pub fn get_keyvalue_from_json_file(filepath: &str) -> Result<Vec<(String, String
 pub fn create_querystring<TKey, TValue>(
     command: &str,
     apikey: &str,
+    is_json: bool,
     parameters: &Vec<(TKey, TValue)>,
 ) -> String
 where
@@ -61,7 +62,9 @@ where
         .collect();
     queryvalues.push((String::from("command"), String::from(command)));
     queryvalues.push(("apikey".to_owned(), apikey.to_owned()));
-    queryvalues.push(("response".to_owned(), "json".to_owned()));
+    if is_json {
+        queryvalues.push(("response".to_owned(), "json".to_owned()));
+    }
     queryvalues.sort_by(|(x1, _), (x2, _)| x1.cmp(x2));
 
     let x: Vec<String> = queryvalues

@@ -51,6 +51,10 @@ OPTIONS:
 you can get detailed API reference in https://www.idcf.jp/api-docs/apis/?id=docs_compute_reference
 ```
 
+## Warning
+
+Some API is asynchronous, you must call queryAsyncJobResult after API request.
+
 ## Examples
 
 ### Get list of templates

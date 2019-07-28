@@ -28,6 +28,7 @@ struct CommandOptions {
     secretkey: String,
     endpoint: String,
     output_path: Option<String>,
+    is_json: bool
 }
 
 impl CommandOptions {
@@ -89,12 +90,21 @@ fn get_command_option(app: &clap::ArgMatches) -> Result<CommandOptions, Applicat
         Some(v) => Some(v.to_owned()),
         None => None,
     };
+    let format = match app.value_of("output-format") {
+        Some(v) => match v {
+            "xml" => "xml".to_owned(),
+            "json" => "json".to_owned(),
+            _ => return Err(ApplicationError::ParameterError(InvalidParameter::new("output-format", "unknown output format")))
+        },
+        None => "xml".to_owned()
+    };
     Ok(CommandOptions {
         method: method,
         apikey: apikey,
         secretkey: secretkey,
         endpoint: endpoint,
         output_path: output_path,
+        is_json: format == "json",
     })
 }
 
@@ -155,6 +165,13 @@ pub fn create_app<'a, 'b>() -> App<'a, 'b> {
                 .long("output")
                 .value_name("OUTPUT_PATH")
                 .help("output file path, if not set, output to stdout"),
+        )
+        .arg(
+            Arg::with_name("output-format")
+                .short("f")
+                .long("output-format")
+                .value_name("OUTPUT_FORMAT")
+                .help("output format(currently, xml(default) and json was supported"),
         )
 }
 
@@ -231,7 +248,7 @@ pub fn execute<'a>(app: &clap::ArgMatches<'a>) -> Result<(), ApplicationError> {
     let option = get_command_option(&app)?;
     parameters.sort_by(|(x1, _), (x2, _)| x1.cmp(x2));
     let query_string =
-        keyvalue::create_querystring(option.method.as_str(), option.apikey.as_str(), &parameters);
+        keyvalue::create_querystring(option.method.as_str(), option.apikey.as_str(), option.is_json, &parameters);
     info!("querystring = {}", query_string);
     let signature = get_signature(&query_string, &option.secretkey)?;
     let client: reqwest::Client = reqwest::ClientBuilder::new()
