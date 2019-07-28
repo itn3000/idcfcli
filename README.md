@@ -40,13 +40,14 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -a, --apikey <API_KEY>           IDCF api key, if not set, using IDCF_API_KEY environment variable
-    -e, --endpoint <END_POINT>       if not set, IDCF_ENDPOINT environment variable will be used
-    -i, --input <INPUT_JSON_FILE>    input keyvalue json file(cannot use with 'k' option)
-    -k, --keyvalue <KEY_VALUE>...    query keyvalue pair(A=B)(cannot use with 'i' option)
-    -m, --method <METHOD>            API method name, REQUIRED
-    -o, --output <OUTPUT_PATH>       output file path, if not set, output to stdout
-    -s, --secretkey <SECRET_KEY>     IDCF secret key, if not set, using IDCF_SECRET_KEY environment variable
+    -a, --apikey <API_KEY>                 IDCF api key, if not set, using IDCF_API_KEY environment variable
+    -e, --endpoint <END_POINT>             if not set, IDCF_ENDPOINT environment variable will be used
+    -i, --input <INPUT_JSON_FILE>          input keyvalue json file(cannot use with 'k' option)
+    -k, --keyvalue <KEY_VALUE>...          query keyvalue pair(A=B)(cannot use with 'i' option)
+    -m, --method <METHOD>                  API method name, REQUIRED
+    -o, --output <OUTPUT_PATH>             output file path, if not set, output to stdout
+    -f, --output-format <OUTPUT_FORMAT>    output format(currently, xml(default) and json was supported
+    -s, --secretkey <SECRET_KEY>           IDCF secret key, if not set, using IDCF_SECRET_KEY environment variable
 
 you can get detailed API reference in https://www.idcf.jp/api-docs/apis/?id=docs_compute_reference
 ```
