@@ -47,22 +47,22 @@ stages:
         displayName: "Github Release"
         pool:
           vmImage: 'ubuntu-latest'
-          steps:
-            - download: artifact_linux
-              artifact: idcfcli_exe_linux
-              patterns: "**/idcfcli*"
-            - download: artifact_windows
-              artifact: idcfcli_exe_windows
-              patterns: "**/idcfcli*"
-            - download: artifact_windows_pdb
-              artifact: idcfcli_exe_windows_pdb
-              patterns: "**/idcfcli*"
-            - task: GitHubRelease@0
-              displayName: "releasing github"
-              inputs:
-                gitHubConnection: "itn3000"
-                action: create
-                target: "$(Build.SourceVersion)"
-                assets: "$(Pipeline.Workspace)/idcfcli*/**/*"
-                isDraft: true
+        steps:
+          - download: artifact_linux
+            artifact: idcfcli_exe_linux
+            patterns: "**/idcfcli*"
+          - download: artifact_windows
+            artifact: idcfcli_exe_windows
+            patterns: "**/idcfcli*"
+          - download: artifact_windows_pdb
+            artifact: idcfcli_exe_windows_pdb
+            patterns: "**/idcfcli*"
+          - task: GitHubRelease@0
+            displayName: "releasing github"
+            inputs:
+              gitHubConnection: "itn3000"
+              action: create
+              target: "$(Build.SourceVersion)"
+              assets: "$(Pipeline.Workspace)/idcfcli*/**/*"
+              isDraft: true
 
