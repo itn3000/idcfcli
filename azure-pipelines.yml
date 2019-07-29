@@ -11,10 +11,22 @@ trigger:
 stages:
   - stage: Build
     jobs:
-      - job: install_build_rust_linux
-        displayName: "build on linux"
-        variables:
-          RUST_TOOLCHAIN: stable
+      - job: install_build_rust_linux_macos
+        displayName: "build on linux and mac"
+        strategy:
+          matrix:
+            - linux-64
+                IMAGE_NAME: "ubuntu-latest"
+                RUST_TOOLCHAIN: "x86_64-unknown-linux-musl"
+            - linux-32
+                IMAGE_NAME: "ubuntu-latest"
+                RUST_TOOLCHAIN: "i686-unknown-linux-musl"
+            - macos-64 
+                IMAGE_NAME: "macOS-10.14"
+                RUST_TOOLCHAIN: "x86_64-unknown-apple-darwin"
+            - macos-32
+                IMAGE_NAME: "macOS-10.14"
+                RUST_TOOLCHAIN: "i686-unknown-apple-darwin"
         pool:
           vmImage: 'ubuntu-latest'
         steps:
@@ -24,22 +36,27 @@ stages:
           - script: "PATH=$PATH:$HOME/.cargo/bin cargo build --release"
             displayName: "cargo build"
           - publish: "$(System.DefaultWorkingDirectory)/target/release/idcfcli"
-            artifact: idcfcli_exe_linux
+            artifact: "idcfcli_$(RUST_TOOLCHAIN)"
       - job: install_build_rust_windows
         displayName: "build on windows"
+        matrix:
+          windows-64:
+            RUST_TOOLCHAIN: "x86_64-pc-windows-msvc"
+          windows-32:
+            RUST_TOOLCHAIN: "i686-pc-windows-msvc"
         pool:
           vmImage: windows-2019
         steps:
           - script: |
               curl -sSf -o rustup-init.exe https://win.rustup.rs
-              rustup-init.exe -y --default-toolchain stable
+              rustup-init.exe -y --default-toolchain %RUST_TOOLCHAIN%
               set PATH=%PATH%;%USERPROFILE%\.cargo\bin
             displayName: "installing rustup"
           - script: "cargo build --release"
           - publish: "$(System.DefaultWorkingDirectory)/target/release/idcfcli.exe"
-            artifact: idcfcli_exe_windows
+            artifact: idcfcli_exe_$(RUST_TOOLCHAIN)
           - publish: "$(System.DefaultWorkingDirectory)/target/release/idcfcli.pdb"
-            artifact: idcfcli_exe_windows_pdb
+            artifact: idcfcli_exe_windows_pdb_$(RUST_TOOLCHAIN)
   - stage: Release
     condition: "startsWith(variables['Build.SourceBranch'], 'refs/tags/')"
     jobs:
@@ -48,19 +65,13 @@ stages:
         pool:
           vmImage: 'ubuntu-latest'
         steps:
-          - download: artifact_linux
-            artifact: idcfcli_exe_linux
-            patterns: "**/idcfcli*"
-          - download: artifact_windows
-            artifact: idcfcli_exe_windows
-            patterns: "**/idcfcli*"
-          - download: artifact_windows_pdb
-            artifact: idcfcli_exe_windows_pdb
+          - download: download_artifacts
+            displayName: downloading artfifacts
             patterns: "**/idcfcli*"
           - task: GitHubRelease@0
             displayName: "releasing github"
             inputs:
-              gitHubConnection: "itn3000"
+              gitHubConnection: "idcfcli-github"
               action: create
               target: "$(Build.SourceVersion)"
               assets: "$(Pipeline.Workspace)/idcfcli*/**/*"
