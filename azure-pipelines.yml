@@ -31,7 +31,10 @@ stages:
           vmImage: "$(IMAGE_NAME)"
         steps:
           - script: |
-              curl -sSf https://static.rust-lang.org/rustup/dist/$RUST_ARCH/rustup-init | sh -s -- --default-toolchain $RUST_TOOLCHAIN -y
+              curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain $RUST_TOOLCHAIN -y
+              export PATH=$PATH:$HOME/.cargo/bin
+              rustup toolchain install "${RUST_TOOLCHAIN}-${RUST_ARCH}"
+              rustup default "${RUST_TOOLCHAIN}-${RUST_ARCH}"
             displayName: 'download and install rustup script'
           - script: "PATH=$PATH:$HOME/.cargo/bin cargo build --release"
             displayName: "cargo build"
