@@ -15,20 +15,20 @@ stages:
         displayName: "build on linux and mac"
         strategy:
           matrix:
-            - linux-64
-                IMAGE_NAME: "ubuntu-latest"
-                RUST_TOOLCHAIN: "x86_64-unknown-linux-musl"
-            - linux-32
-                IMAGE_NAME: "ubuntu-latest"
-                RUST_TOOLCHAIN: "i686-unknown-linux-musl"
-            - macos-64 
-                IMAGE_NAME: "macOS-10.14"
-                RUST_TOOLCHAIN: "x86_64-unknown-apple-darwin"
-            - macos-32
-                IMAGE_NAME: "macOS-10.14"
-                RUST_TOOLCHAIN: "i686-unknown-apple-darwin"
+            linux-64:
+              IMAGE_NAME: "ubuntu-latest"
+              RUST_TOOLCHAIN: "x86_64-unknown-linux-musl"
+            linux-32:
+              IMAGE_NAME: "ubuntu-latest"
+              RUST_TOOLCHAIN: "i686-unknown-linux-musl"
+            macos-64: 
+              IMAGE_NAME: "macOS-10.14"
+              RUST_TOOLCHAIN: "x86_64-unknown-apple-darwin"
+            macos-32:
+              IMAGE_NAME: "macOS-10.14"
+              RUST_TOOLCHAIN: "i686-unknown-apple-darwin"
         pool:
-          vmImage: 'ubuntu-latest'
+          vmImage: "$(IMAGE_NAME)"
         steps:
           - script: |
               curl -sSf https://sh.rustup.rs | sh -s -- --default-toolchain $RUST_TOOLCHAIN -y
@@ -39,11 +39,12 @@ stages:
             artifact: "idcfcli_$(RUST_TOOLCHAIN)"
       - job: install_build_rust_windows
         displayName: "build on windows"
-        matrix:
-          windows-64:
-            RUST_TOOLCHAIN: "x86_64-pc-windows-msvc"
-          windows-32:
-            RUST_TOOLCHAIN: "i686-pc-windows-msvc"
+        strategy:
+          matrix:
+            windows-64:
+              RUST_TOOLCHAIN: "x86_64-pc-windows-msvc"
+            windows-32:
+              RUST_TOOLCHAIN: "i686-pc-windows-msvc"
         pool:
           vmImage: windows-2019
         steps:
