@@ -17,16 +17,20 @@ stages:
           matrix:
             linux-64:
               IMAGE_NAME: "ubuntu-latest"
-              RUST_TOOLCHAIN: "x86_64-unknown-linux-musl"
+              RUST_ARCH: "x86_64-unknown-linux-musl"
+              RUST_TOOLCHAIN: "stable"
             linux-32:
               IMAGE_NAME: "ubuntu-latest"
-              RUST_TOOLCHAIN: "i686-unknown-linux-musl"
+              RUST_ARCH: "i686-unknown-linux-musl"
+              RUST_TOOLCHAIN: "stable"
             macos-64: 
               IMAGE_NAME: "macOS-10.14"
-              RUST_TOOLCHAIN: "x86_64-unknown-apple-darwin"
+              RUST_ARCH: "x86_64-unknown-apple-darwin"
+              RUST_TOOLCHAIN: "stable"
             macos-32:
               IMAGE_NAME: "macOS-10.14"
-              RUST_TOOLCHAIN: "i686-unknown-apple-darwin"
+              RUST_ARCH: "i686-unknown-apple-darwin"
+              RUST_TOOLCHAIN: "stable"
         pool:
           vmImage: "$(IMAGE_NAME)"
         steps:
@@ -42,9 +46,11 @@ stages:
         strategy:
           matrix:
             windows-64:
-              RUST_TOOLCHAIN: "x86_64-pc-windows-msvc"
+              RUST_ARCH: "x86_64-pc-windows-msvc"
+              RUST_TOOLCHAIN: "stable"
             windows-32:
-              RUST_TOOLCHAIN: "i686-pc-windows-msvc"
+              RUST_ARCH: "i686-pc-windows-msvc"
+              RUST_TOOLCHAIN: "stable"
         pool:
           vmImage: windows-2019
         steps:
