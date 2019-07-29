@@ -25,11 +25,11 @@ stages:
               RUST_TOOLCHAIN: "stable"
             macos-64: 
               IMAGE_NAME: "macOS-10.14"
-              RUST_ARCH: "x86_64-unknown-apple-darwin"
+              RUST_ARCH: "x86_64-apple-darwin"
               RUST_TOOLCHAIN: "stable"
             macos-32:
               IMAGE_NAME: "macOS-10.14"
-              RUST_ARCH: "i686-unknown-apple-darwin"
+              RUST_ARCH: "i686-apple-darwin"
               RUST_TOOLCHAIN: "stable"
         pool:
           vmImage: "$(IMAGE_NAME)"
