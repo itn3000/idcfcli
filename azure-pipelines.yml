@@ -36,7 +36,7 @@ stages:
               rustup toolchain install "${RUST_TOOLCHAIN}-${RUST_ARCH}"
               rustup target install "${RUST_ARCH}"
               if [ "$IMAGE_NAME" = "ubuntu-latest" ]; then
-                apt-get install -y gcc-multilib
+                sudo apt-get install -y gcc-multilib
               fi
             displayName: 'download and install rustup script'
           - script: "PATH=$PATH:$HOME/.cargo/bin cargo build --release --target $RUST_ARCH"
