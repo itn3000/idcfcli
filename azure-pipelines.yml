@@ -34,9 +34,12 @@ stages:
               curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain $RUST_TOOLCHAIN -y
               export PATH=$PATH:$HOME/.cargo/bin
               rustup toolchain install "${RUST_TOOLCHAIN}-${RUST_ARCH}"
-              rustup default "${RUST_TOOLCHAIN}-${RUST_ARCH}"
+              rustup target install "${RUST_ARCH}"
+              if [ "$IMAGE_NAME" = "ubuntu-latest" ]; then
+                apt-get install -y gcc-multilib
+              fi
             displayName: 'download and install rustup script'
-          - script: "PATH=$PATH:$HOME/.cargo/bin cargo build --release"
+          - script: "PATH=$PATH:$HOME/.cargo/bin cargo build --release --target $RUST_ARCH"
             displayName: "cargo build"
           - publish: "$(System.DefaultWorkingDirectory)/target/release/idcfcli"
             artifact: "idcfcli_$(RUST_TOOLCHAIN)_$(RUST_ARCH)"
