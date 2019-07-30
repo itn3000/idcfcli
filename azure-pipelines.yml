@@ -60,11 +60,12 @@ stages:
               curl -sSf -o rustup-init.exe https://static.rust-lang.org/rustup/dist/%RUST_ARCH%/rustup-init.exe
               rustup-init.exe -y --default-toolchain %RUST_TOOLCHAIN%
               set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+              rustup target add %RUST_ARCH%
             displayName: "installing rustup"
-          - script: "cargo build --release"
-          - publish: "$(System.DefaultWorkingDirectory)/target/release/idcfcli.exe"
+          - script: "cargo build --release --target %RUST_ARCH%"
+          - publish: "$(System.DefaultWorkingDirectory)/target/%RUST_ARCH%/release/idcfcli.exe"
             artifact: idcfcli_$(RUST_TOOLCHAIN)_$(RUST_ARCH)
-          - publish: "$(System.DefaultWorkingDirectory)/target/release/idcfcli.pdb"
+          - publish: "$(System.DefaultWorkingDirectory)/target/%RUST_ARCH%/release/idcfcli.pdb"
             artifact: idcfcli_pdb_$(RUST_TOOLCHAIN)_$(RUST_ARCH)
   - stage: Release
     condition: "startsWith(variables['Build.SourceBranch'], 'refs/tags/')"
