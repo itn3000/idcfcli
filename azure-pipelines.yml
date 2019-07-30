@@ -27,6 +27,7 @@ stages:
               IMAGE_NAME: "macOS-10.14"
               RUST_ARCH: "x86_64-apple-darwin"
               RUST_TOOLCHAIN: "stable"
+          maxParallel: 3
         pool:
           vmImage: "$(IMAGE_NAME)"
         steps:
@@ -50,6 +51,7 @@ stages:
             windows-32:
               RUST_ARCH: "i686-pc-windows-msvc"
               RUST_TOOLCHAIN: "stable"
+          maxParallel: 2
         pool:
           vmImage: windows-2019
         steps:
