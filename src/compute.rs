@@ -252,7 +252,6 @@ pub fn execute<'a>(app: &clap::ArgMatches<'a>) -> Result<(), ApplicationError> {
     info!("querystring = {}", query_string);
     let signature = get_signature(&query_string, &option.secretkey)?;
     let client: reqwest::Client = reqwest::ClientBuilder::new()
-        .use_default_tls()
         .use_sys_proxy()
         .redirect(reqwest::RedirectPolicy::default())
         .build()
