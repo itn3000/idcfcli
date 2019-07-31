@@ -76,15 +76,42 @@ stages:
         pool:
           vmImage: 'ubuntu-latest'
         steps:
-          - download: download_artifacts
-            displayName: downloading artfifacts
-            patterns: "**/idcfcli*"
+          - task: DownloadBuildArtifacts@0
+            displayName: download win-x64-msvc
+            inputs:
+              artifactName: idcfcli_stable_x86_64-pc-windows-msvc
+              downloadPath: "$(System.ArtifactsDirectory)"
+          - task: DownloadBuildArtifacts@0
+            displayName: download win-x64-msvc-pdb
+            inputs:
+              artifactName: idcfcli_pdb_stable_x86_64-pc-windows-msvc
+              downloadPath: "$(System.ArtifactsDirectory)"
+          - task: DownloadBuildArtifacts@0
+            displayName: download win-x86-msvc
+            inputs:
+              artifactName: idcfcli_stable_i686-pc-windows-msvc
+              downloadPath: "$(System.ArtifactsDirectory)"
+          - task: DownloadBuildArtifacts@0
+            displayName: download win-x86-msvc-pdb
+            inputs:
+              artifactName: idcfcli_pdb_stable_i686-pc-windows-msvc
+              downloadPath: "$(System.ArtifactsDirectory)"
+          - task: DownloadBuildArtifacts@0
+            displayName: download linux-x64-musl
+            inputs:
+              artifactName: idcfcli_stable_x86_64-unknown-linux-musl
+              downloadPath: "$(System.ArtifactsDirectory)"
+          - task: DownloadBuildArtifacts@0
+            displayName: download osx-x64-darwin
+            inputs:
+              artifactName: idcfcli_stable_x86_64-apple-darwin
+              downloadPath: "$(System.ArtifactsDirectory)"
           - task: GitHubRelease@0
             displayName: "releasing github"
             inputs:
               gitHubConnection: "idcfcli-github"
               action: create
               target: "$(Build.SourceVersion)"
-              assets: "$(Pipeline.Workspace)/idcfcli*/**/*"
+              assets: "$(System.ArtifactsDirectory)/idcfcli*/**/*"
               isDraft: true
 
