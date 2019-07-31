@@ -17,11 +17,11 @@ stages:
           matrix:
             linux-64:
               IMAGE_NAME: "ubuntu-latest"
-              RUST_ARCH: "x86_64-unknown-linux-gnu"
+              RUST_ARCH: "x86_64-unknown-linux-musl"
               RUST_TOOLCHAIN: "stable"
             linux-32:
               IMAGE_NAME: "ubuntu-latest"
-              RUST_ARCH: "i686-unknown-linux-gnu"
+              RUST_ARCH: "i686-unknown-linux-musl"
               RUST_TOOLCHAIN: "stable"
             macos-64: 
               IMAGE_NAME: "macOS-10.14"
