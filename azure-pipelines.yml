@@ -112,6 +112,6 @@ stages:
               gitHubConnection: "idcfcli-github"
               action: create
               target: "$(Build.SourceVersion)"
-              assets: "$(System.ArtifactsDirectory)/idcfcli*/**/*"
+              assets: "$(System.ArtifactsDirectory)/*"
               isDraft: true
 
