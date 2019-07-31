@@ -41,8 +41,6 @@ stages:
             displayName: 'download and install rustup script'
           - script: "PATH=$PATH:$HOME/.cargo/bin cargo build --release --target $RUST_ARCH"
             displayName: "cargo build"
-          - script: "find target"
-            displayName: "find target folder"
           - publish: "$(System.DefaultWorkingDirectory)/target/$(RUST_ARCH)/release/idcfcli"
             artifact: "idcfcli_$(RUST_TOOLCHAIN)_$(RUST_ARCH)"
       - job: install_build_rust_windows
