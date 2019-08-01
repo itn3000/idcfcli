@@ -42,8 +42,14 @@ stages:
             displayName: 'download and install rustup script'
           - script: "PATH=$PATH:$HOME/.cargo/bin cargo build --release --target $RUST_ARCH"
             displayName: "cargo build"
-          - publish: "$(System.DefaultWorkingDirectory)/target/$(RUST_ARCH)/release/idcfcli"
-            artifact: "idcfcli_$(RUST_TOOLCHAIN)_$(RUST_ARCH)"
+          - task: PowerShell@2
+            inputs:
+              targetType: inline
+              script: |
+                Copy-Item "target/$($env:RUST_ARCH))/release/idcfcli" "$($env:BUILD_ARTIFACTSSTAGINGDIRECTORY))/idcfcli_$($env:RUST_ARCH)"
+            displayName: copy artifacts to staging directory
+          - publish: "$(Build.ArtifactsStagingDirectory)"
+            artifact: idcfcli_$(RUST_TOOLCHAIN)_$(RUST_ARCH)
       - job: install_build_rust_windows
         displayName: "build on windows"
         strategy:
@@ -64,10 +70,15 @@ stages:
               rustup target add %RUST_ARCH%
             displayName: "installing rustup"
           - script: "cargo build --release --target %RUST_ARCH%"
-          - publish: "$(System.DefaultWorkingDirectory)/target/$(RUST_ARCH)/release/idcfcli.exe"
+          - task: PowerShell@2
+            inputs:
+              targetType: inline
+              script: |
+                Copy-Item "target/$($env:RUST_ARCH))/release/idcfcli.exe" "$($env:BUILD_ARTIFACTSSTAGINGDIRECTORY))/idcfcli_$($env:RUST_ARCH).exe"
+                Copy-Item "target/$($env:RUST_ARCH))/release/idcfcli.pdb" "$($env:BUILD_ARTIFACTSSTAGINGDIRECTORY))/idcfcli_$($env:RUST_ARCH).pdb"
+            displayName: copy artifacts to staging directory
+          - publish: "$(Build.ArtifactsStagingDirectory)"
             artifact: idcfcli_$(RUST_TOOLCHAIN)_$(RUST_ARCH)
-          - publish: "$(System.DefaultWorkingDirectory)/target/$(RUST_ARCH)/release/idcfcli.pdb"
-            artifact: idcfcli_pdb_$(RUST_TOOLCHAIN)_$(RUST_ARCH)
   - stage: Release
     condition: "startsWith(variables['Build.SourceBranch'], 'refs/tags/')"
     jobs:
@@ -80,38 +91,28 @@ stages:
             displayName: download win-x64-msvc
             inputs:
               artifact: idcfcli_stable_x86_64-pc-windows-msvc
-              path: "$(System.ArtifactsDirectory)"
-          - task: DownloadPipelineArtifact@2
-            displayName: download win-x64-msvc-pdb
-            inputs:
-              artifact: idcfcli_pdb_stable_x86_64-pc-windows-msvc
-              path: "$(System.ArtifactsDirectory)"
+              path: "$(Build.ArtifactsStagingDirectory)"
           - task: DownloadPipelineArtifact@2
             displayName: download win-x86-msvc
             inputs:
               artifact: idcfcli_stable_i686-pc-windows-msvc
-              path: "$(System.ArtifactsDirectory)"
-          - task: DownloadPipelineArtifact@2
-            displayName: download win-x86-msvc-pdb
-            inputs:
-              artifact: idcfcli_pdb_stable_i686-pc-windows-msvc
-              path: "$(System.ArtifactsDirectory)"
+              path: "$(Build.ArtifactsStagingDirectory)"
           - task: DownloadPipelineArtifact@2
             displayName: download linux-x64-musl
             inputs:
               artifact: idcfcli_stable_x86_64-unknown-linux-musl
-              path: "$(System.ArtifactsDirectory)"
+              path: "$(Build.ArtifactsStagingDirectory)"
           - task: DownloadPipelineArtifact@2
             displayName: download osx-x64-darwin
             inputs:
               artifact: idcfcli_stable_x86_64-apple-darwin
-              path: "$(System.ArtifactsDirectory)"
+              path: "$(Build.ArtifactsStagingDirectory)"
           - task: GitHubRelease@0
             displayName: "releasing github"
             inputs:
               gitHubConnection: "idcfcli-github"
               action: create
               target: "$(Build.SourceVersion)"
-              assets: "$(System.ArtifactsDirectory)/*"
+              assets: "$(Build.ArtifactsStagingDirectory)/*"
               isDraft: true
 
