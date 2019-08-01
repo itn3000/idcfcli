@@ -6,6 +6,7 @@ Entire API reference is in [IDCF Cloud API Docs](https://www.idcf.jp/api-docs/)
 
 # Usage
 
+This is the single executable binary, so you download it from [release page](https://github.com/itn3000/idcfcli/releases), then you can execute command.
 you can get global help by `--help` option. Here is the output.
 
 ```
