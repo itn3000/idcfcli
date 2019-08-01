@@ -76,36 +76,36 @@ stages:
         pool:
           vmImage: 'ubuntu-latest'
         steps:
-          - task: DownloadBuildArtifacts@0
+          - task: DownloadPipelineArtifact@2
             displayName: download win-x64-msvc
             inputs:
-              artifactName: idcfcli_stable_x86_64-pc-windows-msvc
-              downloadPath: "$(System.ArtifactsDirectory)"
-          - task: DownloadBuildArtifacts@0
+              artifact: idcfcli_stable_x86_64-pc-windows-msvc
+              path: "$(System.ArtifactsDirectory)"
+          - task: DownloadPipelineArtifact@2
             displayName: download win-x64-msvc-pdb
             inputs:
-              artifactName: idcfcli_pdb_stable_x86_64-pc-windows-msvc
-              downloadPath: "$(System.ArtifactsDirectory)"
-          - task: DownloadBuildArtifacts@0
+              artifact: idcfcli_pdb_stable_x86_64-pc-windows-msvc
+              path: "$(System.ArtifactsDirectory)"
+          - task: DownloadPipelineArtifact@2
             displayName: download win-x86-msvc
             inputs:
-              artifactName: idcfcli_stable_i686-pc-windows-msvc
-              downloadPath: "$(System.ArtifactsDirectory)"
-          - task: DownloadBuildArtifacts@0
+              artifact: idcfcli_stable_i686-pc-windows-msvc
+              path: "$(System.ArtifactsDirectory)"
+          - task: DownloadPipelineArtifact@2
             displayName: download win-x86-msvc-pdb
             inputs:
-              artifactName: idcfcli_pdb_stable_i686-pc-windows-msvc
-              downloadPath: "$(System.ArtifactsDirectory)"
-          - task: DownloadBuildArtifacts@0
+              artifact: idcfcli_pdb_stable_i686-pc-windows-msvc
+              path: "$(System.ArtifactsDirectory)"
+          - task: DownloadPipelineArtifact@2
             displayName: download linux-x64-musl
             inputs:
-              artifactName: idcfcli_stable_x86_64-unknown-linux-musl
-              downloadPath: "$(System.ArtifactsDirectory)"
-          - task: DownloadBuildArtifacts@0
+              artifact: idcfcli_stable_x86_64-unknown-linux-musl
+              path: "$(System.ArtifactsDirectory)"
+          - task: DownloadPipelineArtifact@2
             displayName: download osx-x64-darwin
             inputs:
-              artifactName: idcfcli_stable_x86_64-apple-darwin
-              downloadPath: "$(System.ArtifactsDirectory)"
+              artifact: idcfcli_stable_x86_64-apple-darwin
+              path: "$(System.ArtifactsDirectory)"
           - task: GitHubRelease@0
             displayName: "releasing github"
             inputs:
