@@ -52,7 +52,7 @@ stages:
               ls $BUILD_ARTIFACTSTAGINGDIRECTORY
               export
             displayName: list staging directory
-          - publish: "$(Build.ArtifactsStagingDirectory)"
+          - publish: "$(Build.ArtifactStagingDirectory)"
             artifact: idcfcli_$(RUST_TOOLCHAIN)_$(RUST_ARCH)
       - job: install_build_rust_windows
         displayName: "build on windows"
@@ -85,7 +85,7 @@ stages:
               set
               dir %BUILD_ARTIFACTSTAGINGDIRECTORY%
             displayName: list staging directory
-          - publish: "$(Build.ArtifactsStagingDirectory)"
+          - publish: "$(Build.ArtifactStagingDirectory)"
             artifact: idcfcli_$(RUST_TOOLCHAIN)_$(RUST_ARCH)
   - stage: Release
     condition: "startsWith(variables['Build.SourceBranch'], 'refs/tags/')"
