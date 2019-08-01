@@ -99,28 +99,28 @@ stages:
             displayName: download win-x64-msvc
             inputs:
               artifact: idcfcli_stable_x86_64-pc-windows-msvc
-              path: "$(Build.ArtifactsStagingDirectory)"
+              path: "$(Build.ArtifactStagingDirectory)"
           - task: DownloadPipelineArtifact@2
             displayName: download win-x86-msvc
             inputs:
               artifact: idcfcli_stable_i686-pc-windows-msvc
-              path: "$(Build.ArtifactsStagingDirectory)"
+              path: "$(Build.ArtifactStagingDirectory)"
           - task: DownloadPipelineArtifact@2
             displayName: download linux-x64-musl
             inputs:
               artifact: idcfcli_stable_x86_64-unknown-linux-musl
-              path: "$(Build.ArtifactsStagingDirectory)"
+              path: "$(Build.ArtifactStagingDirectory)"
           - task: DownloadPipelineArtifact@2
             displayName: download osx-x64-darwin
             inputs:
               artifact: idcfcli_stable_x86_64-apple-darwin
-              path: "$(Build.ArtifactsStagingDirectory)"
+              path: "$(Build.ArtifactStagingDirectory)"
           - task: GitHubRelease@0
             displayName: "releasing github"
             inputs:
               gitHubConnection: "idcfcli-github"
               action: create
               target: "$(Build.SourceVersion)"
-              assets: "$(Build.ArtifactsStagingDirectory)/*"
+              assets: "$(Build.ArtifactStagingDirectory)/*"
               isDraft: true
 
