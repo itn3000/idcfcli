@@ -46,10 +46,10 @@ stages:
             inputs:
               targetType: inline
               script: |
-                Copy-Item "target/$($env:RUST_ARCH)/release/idcfcli" "$($env:BUILD_ARTIFACTSSTAGINGDIRECTORY)/idcfcli_$($env:RUST_ARCH)"
+                Copy-Item "target/$($env:RUST_ARCH)/release/idcfcli" "$($env:BUILD_ARTIFACTSTAGINGDIRECTORY)/idcfcli_$($env:RUST_ARCH)"
             displayName: copy artifacts to staging directory
           - script: |
-              ls $BUILD_ARTIFACTSSTAGINGDIRECTORY
+              ls $BUILD_ARTIFACTSTAGINGDIRECTORY
               export
             displayName: list staging directory
           - publish: "$(Build.ArtifactsStagingDirectory)"
@@ -78,12 +78,12 @@ stages:
             inputs:
               targetType: inline
               script: |
-                Copy-Item "target/$($env:RUST_ARCH)/release/idcfcli.exe" "$($env:BUILD_ARTIFACTSSTAGINGDIRECTORY)/idcfcli_$($env:RUST_ARCH).exe"
-                Copy-Item "target/$($env:RUST_ARCH)/release/idcfcli.pdb" "$($env:BUILD_ARTIFACTSSTAGINGDIRECTORY)/idcfcli_$($env:RUST_ARCH).pdb"
+                Copy-Item "target/$($env:RUST_ARCH)/release/idcfcli.exe" "$($env:BUILD_ARTIFACTSTAGINGDIRECTORY)/idcfcli_$($env:RUST_ARCH).exe"
+                Copy-Item "target/$($env:RUST_ARCH)/release/idcfcli.pdb" "$($env:BUILD_ARTIFACTSTAGINGDIRECTORY)/idcfcli_$($env:RUST_ARCH).pdb"
             displayName: copy artifacts to staging directory
           - script: |
               set
-              dir %BUILD_ARTIFACTSSTAGINGDIRECTORY%
+              dir %BUILD_ARTIFACTSTAGINGDIRECTORY%
             displayName: list staging directory
           - publish: "$(Build.ArtifactsStagingDirectory)"
             artifact: idcfcli_$(RUST_TOOLCHAIN)_$(RUST_ARCH)
