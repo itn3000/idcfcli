@@ -40,6 +40,22 @@ impl CommandOptions {
     }
 }
 
+fn get_value_from_cmd_and_env(app: &clap::ArgMatches, name: &str, first: &str, second: &str, errmsg: &str) -> Result<String, ApplicationError> {
+    match app.value_of(name) {
+        Some(v) => Ok(v.to_owned()),
+        None => match std::env::var(first) {
+            Ok(v) => Ok(v.to_owned()),
+            Err(_) => match std::env::var(second) {
+                Ok(v) => Ok(v.to_owned()),
+                Err(e) => Err(ApplicationError::ParameterError(InvalidParameter::new(
+                    name,
+                    (format!("{}: ({:?})", errmsg, e)).as_str()
+                )))
+            }
+        }
+    }
+}
+
 fn get_command_option(app: &clap::ArgMatches) -> Result<CommandOptions, ApplicationError> {
     let method = match app.value_of("method") {
         Some(v) => v.to_owned(),
@@ -50,42 +66,9 @@ fn get_command_option(app: &clap::ArgMatches) -> Result<CommandOptions, Applicat
             )))
         }
     };
-    let apikey = match app.value_of("apikey") {
-        Some(v) => v.to_owned(),
-        None => match std::env::var("IDCF_API_KEY") {
-            Ok(v) => v,
-            Err(_) => {
-                return Err(ApplicationError::ParameterError(InvalidParameter::new(
-                    "apikey",
-                    "you must set API key option or IDCF_API_KEY env variable",
-                )))
-            }
-        },
-    };
-    let secretkey = match app.value_of("secretkey") {
-        Some(v) => v.to_owned(),
-        None => match std::env::var("IDCF_SECRET_KEY") {
-            Ok(v) => v,
-            Err(_) => {
-                return Err(ApplicationError::ParameterError(InvalidParameter::new(
-                    "apikey",
-                    "you must set API key option or IDCF_SECRET_KEY env variable",
-                )))
-            }
-        },
-    };
-    let endpoint = match app.value_of("endpoint") {
-        Some(v) => v.to_owned(),
-        None => match std::env::var("IDCF_ENDPOINT") {
-            Ok(v) => v,
-            Err(e) => {
-                return Err(ApplicationError::ParameterError(InvalidParameter::new(
-                    "endpoint",
-                    format!("you must set endpoint({:?})", e).as_str(),
-                )))
-            }
-        },
-    };
+    let apikey = get_value_from_cmd_and_env(app, "apikey", "IDCF_API_KEY", "CLOUDSTACK_API_KEY", "you must set API key option or IDCF_API_KEY or CLOUDSTACK_API_KEY env variable")?;
+    let secretkey = get_value_from_cmd_and_env(app, "secretkey", "IDCF_SECRET_KEY", "CLOUDSTACK_SECRET_KEY", "you must set API key option or IDCF_SECRET_KEY or CLOUDSTACK_SECRET_KEY env variable")?;
+    let endpoint = get_value_from_cmd_and_env(app, "endpoint", "IDCF_ENDPOINT", "CLOUDSTACK_ENDPOINT", "you must set endpoint by parameter(--endpoint) or IDCF_ENDPOINT or CLOUDSTACK_ENDPOINT env variable")?;
     let output_path = match app.value_of("output") {
         Some(v) => Some(v.to_owned()),
         None => None,
