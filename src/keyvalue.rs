@@ -1,5 +1,4 @@
 extern crate serde_json;
-
 use super::{ApplicationError};
 
 pub fn get_keyvalue_from_strings(elements: &[&str]) -> Result<Vec<(String, String)>, ApplicationError> {

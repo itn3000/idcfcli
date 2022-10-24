@@ -12,13 +12,12 @@ use clap::{App, Arg};
 use crypto::mac::Mac;
 use std::convert::AsRef;
 use std::convert::From;
-use std::io::Read;
 use std::iter::Iterator;
 
 use super::encode_form_url_utf8;
 use super::ApplicationError;
-use super::InvalidParameter;
 use super::GenericError;
+use super::InvalidParameter;
 
 use super::keyvalue;
 
@@ -28,7 +27,7 @@ struct CommandOptions {
     secretkey: String,
     endpoint: String,
     output_path: Option<String>,
-    is_json: bool
+    is_json: bool,
 }
 
 impl CommandOptions {
@@ -40,7 +39,13 @@ impl CommandOptions {
     }
 }
 
-fn get_value_from_cmd_and_env(app: &clap::ArgMatches, name: &str, first: &str, second: &str, errmsg: &str) -> Result<String, ApplicationError> {
+fn get_value_from_cmd_and_env(
+    app: &clap::ArgMatches,
+    name: &str,
+    first: &str,
+    second: &str,
+    errmsg: &str,
+) -> Result<String, ApplicationError> {
     match app.value_of(name) {
         Some(v) => Ok(v.to_owned()),
         None => match std::env::var(first) {
@@ -49,10 +54,10 @@ fn get_value_from_cmd_and_env(app: &clap::ArgMatches, name: &str, first: &str, s
                 Ok(v) => Ok(v.to_owned()),
                 Err(e) => Err(ApplicationError::ParameterError(InvalidParameter::new(
                     name,
-                    (format!("{}: ({:?})", errmsg, e)).as_str()
-                )))
-            }
-        }
+                    (format!("{}: ({:?})", errmsg, e)).as_str(),
+                ))),
+            },
+        },
     }
 }
 
@@ -66,8 +71,20 @@ fn get_command_option(app: &clap::ArgMatches) -> Result<CommandOptions, Applicat
             )))
         }
     };
-    let apikey = get_value_from_cmd_and_env(app, "apikey", "IDCF_API_KEY", "CLOUDSTACK_API_KEY", "you must set API key option or IDCF_API_KEY or CLOUDSTACK_API_KEY env variable")?;
-    let secretkey = get_value_from_cmd_and_env(app, "secretkey", "IDCF_SECRET_KEY", "CLOUDSTACK_SECRET_KEY", "you must set API key option or IDCF_SECRET_KEY or CLOUDSTACK_SECRET_KEY env variable")?;
+    let apikey = get_value_from_cmd_and_env(
+        app,
+        "apikey",
+        "IDCF_API_KEY",
+        "CLOUDSTACK_API_KEY",
+        "you must set API key option or IDCF_API_KEY or CLOUDSTACK_API_KEY env variable",
+    )?;
+    let secretkey = get_value_from_cmd_and_env(
+        app,
+        "secretkey",
+        "IDCF_SECRET_KEY",
+        "CLOUDSTACK_SECRET_KEY",
+        "you must set API key option or IDCF_SECRET_KEY or CLOUDSTACK_SECRET_KEY env variable",
+    )?;
     let endpoint = get_value_from_cmd_and_env(app, "endpoint", "IDCF_ENDPOINT", "CLOUDSTACK_ENDPOINT", "you must set endpoint by parameter(--endpoint) or IDCF_ENDPOINT or CLOUDSTACK_ENDPOINT env variable")?;
     let output_path = match app.value_of("output") {
         Some(v) => Some(v.to_owned()),
@@ -77,9 +94,14 @@ fn get_command_option(app: &clap::ArgMatches) -> Result<CommandOptions, Applicat
         Some(v) => match v {
             "xml" => "xml".to_owned(),
             "json" => "json".to_owned(),
-            _ => return Err(ApplicationError::ParameterError(InvalidParameter::new("output-format", "unknown output format")))
+            _ => {
+                return Err(ApplicationError::ParameterError(InvalidParameter::new(
+                    "output-format",
+                    "unknown output format",
+                )))
+            }
         },
-        None => "xml".to_owned()
+        None => "xml".to_owned(),
     };
     Ok(CommandOptions {
         method: method,
@@ -161,7 +183,8 @@ pub fn create_app<'a, 'b>() -> App<'a, 'b> {
 fn get_signature(query_string: &str, secret_key: &str) -> Result<String, ApplicationError> {
     let hash = crypto::sha1::Sha1::new();
     let mut hmac = crypto::hmac::Hmac::new(hash, secret_key.as_bytes());
-    let inputstr = query_string.to_lowercase()
+    let inputstr = query_string
+        .to_lowercase()
         .replace("+", "%20")
         .replace("%2a", "*")
         .replace("%5b", "[")
@@ -188,22 +211,22 @@ fn get_parameters<'a>(
     }
 }
 
-fn output_response_to_stream<T>(w: &mut T, mut res: reqwest::Response) -> Result<(), std::io::Error>
+async fn output_response_to_stream<T>(w: &mut T, res: reqwest::Response) -> Result<(), ApplicationError>
 where
     T: std::io::Write,
 {
-    let mut buf = [0u8; 4096];
-    loop {
-        let bytesread = res.read(&mut buf)?;
-        if bytesread <= 0 {
-            break;
-        }
-        w.write(&buf[0..bytesread])?;
-    }
+    let bytes = match res.bytes().await {
+        Ok(v) => v,
+        Err(e) => return Err(ApplicationError::ReqwestError(e))
+    };
+    match w.write(&bytes) {
+        Ok(_) => (),
+        Err(e) => return Err(ApplicationError::IoError(e)),
+    };
     Ok(())
 }
 
-fn output_response(
+async fn output_response(
     res: reqwest::Response,
     output_path: Option<&str>,
 ) -> Result<(), ApplicationError> {
@@ -212,31 +235,28 @@ fn output_response(
             Ok(v) => v,
             Err(e) => return Err(ApplicationError::IoError(e)),
         };
-        match output_response_to_stream(&mut f, res) {
-            Ok(_) => (),
-            Err(e) => return Err(ApplicationError::IoError(e)),
-        };
+        output_response_to_stream(&mut f, res).await?;
     } else {
         let mut stdout = std::io::stdout();
-        match output_response_to_stream(&mut stdout, res) {
-            Ok(_) => (),
-            Err(e) => return Err(ApplicationError::IoError(e)),
-        };
+        output_response_to_stream(&mut stdout, res).await?;
     }
     Ok(())
 }
 
-pub fn execute<'a>(app: &clap::ArgMatches<'a>) -> Result<(), ApplicationError> {
+pub async fn execute<'a>(app: &clap::ArgMatches<'a>) -> Result<(), ApplicationError> {
     let mut parameters = get_parameters(&app)?;
     let option = get_command_option(&app)?;
     parameters.sort_by(|(x1, _), (x2, _)| x1.cmp(x2));
-    let query_string =
-        keyvalue::create_querystring(option.method.as_str(), option.apikey.as_str(), option.is_json, &parameters);
+    let query_string = keyvalue::create_querystring(
+        option.method.as_str(),
+        option.apikey.as_str(),
+        option.is_json,
+        &parameters,
+    );
     info!("querystring = {}", query_string);
     let signature = get_signature(&query_string, &option.secretkey)?;
     let client: reqwest::Client = reqwest::ClientBuilder::new()
-        .use_sys_proxy()
-        .redirect(reqwest::RedirectPolicy::default())
+        .redirect(reqwest::redirect::Policy::default())
         .build()
         .unwrap();
     let requesturl = match reqwest::Url::parse(
@@ -249,21 +269,25 @@ pub fn execute<'a>(app: &clap::ArgMatches<'a>) -> Result<(), ApplicationError> {
         Ok(v) => v,
         Err(e) => return Err(ApplicationError::ReqwestParseError(e)),
     };
-    match client
-        .request(reqwest::Method::GET, requesturl)
-        .send()
-    {
+    match client.request(reqwest::Method::GET, requesturl).send().await {
         Ok(v) => {
-            let mut v: reqwest::Response = v;
-            if v.status().is_success() {
+            let v: reqwest::Response = v;
+            let status = v.status();
+
+            if status.is_success() {
                 info!("request success:{:?}", v);
-                output_response(v, option.output_path())?;
+                output_response(v, option.output_path()).await?;
             } else {
                 eprintln!("response error:{:?}", v);
                 // output_response(v, option.output_path())?;
-                let mut body = String::new();
-                v.read_to_string(&mut body).unwrap();
-                return Err(ApplicationError::GenericError(GenericError::new(format!("response error:{}, {}", v.status(), body).as_str(), "compute::execute")))
+                let body = match v.text().await {
+                    Ok(v) => v,
+                    Err(e) => return Err(ApplicationError::ReqwestError(e)),
+                };
+                return Err(ApplicationError::GenericError(GenericError::new(
+                    format!("response error:{}, {}", status, body).as_str(),
+                    "compute::execute",
+                )));
             }
         }
         Err(e) => {

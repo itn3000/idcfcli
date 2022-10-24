@@ -28,6 +28,12 @@ impl InvalidParameter {
             description: description.to_owned(),
         }
     }
+    pub fn name<'a>(&'a self) -> &'a str {
+        self.name.as_str()
+    }
+    pub fn description<'a>(&'a self) -> &'a str {
+        self.description.as_str()
+    }
 }
 
 #[derive(Debug)]
@@ -43,6 +49,12 @@ impl GenericError {
             location: location.to_owned()
         }
     }
+    pub fn description<'a>(&'a self) -> &'a str {
+        self.description.as_str()
+    }
+    pub fn location<'a>(&'a self) -> &'a str {
+        self.location.as_str()
+    }
 }
 
 #[derive(Debug)]
@@ -51,7 +63,7 @@ pub enum ApplicationError {
     ParameterError(InvalidParameter),
     SerdeError(serde_json::Error),
     ReqwestError(reqwest::Error),
-    ReqwestParseError(reqwest::UrlError),
+    ReqwestParseError(url::ParseError),
     GenericError(GenericError),
 }
 
@@ -90,7 +102,7 @@ fn main() -> Result<(), ApplicationError> {
     let app = create_app().get_matches();
     match app.subcommand() {
         ("compute", Some(app)) => {
-            compute::execute(app)
+            futures::executor::block_on(compute::execute(app))
         },
         _ => {
             error!("unknown subcommand");
