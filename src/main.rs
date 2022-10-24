@@ -97,12 +97,13 @@ fn create_app<'a, 'b>() -> App<'a, 'b> {
         .subcommand(compute::create_app())
 }
 
-fn main() -> Result<(), ApplicationError> {
+#[tokio::main]
+async fn main() -> Result<(), ApplicationError> {
     env_logger::init();
     let app = create_app().get_matches();
     match app.subcommand() {
         ("compute", Some(app)) => {
-            futures::executor::block_on(compute::execute(app))
+            compute::execute(app).await
         },
         _ => {
             error!("unknown subcommand");

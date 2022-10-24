@@ -85,7 +85,7 @@ fn get_command_option(app: &clap::ArgMatches) -> Result<CommandOptions, Applicat
         "CLOUDSTACK_SECRET_KEY",
         "you must set API key option or IDCF_SECRET_KEY or CLOUDSTACK_SECRET_KEY env variable",
     )?;
-    let endpoint = get_value_from_cmd_and_env(app, "endpoint", "IDCF_ENDPOINT", "CLOUDSTACK_ENDPOINT", "you must set endpoint by parameter(--endpoint) or IDCF_ENDPOINT or CLOUDSTACK_ENDPOINT env variable")?;
+    let endpoint = get_value_from_cmd_and_env(app, "endpoint", "IDCF_ENDPOINT", "CLOUDSTACK_API_URL", "you must set endpoint by parameter(--endpoint) or IDCF_ENDPOINT or CLOUDSTACK_API_URL env variable")?;
     let output_path = match app.value_of("output") {
         Some(v) => Some(v.to_owned()),
         None => None,

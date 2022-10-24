@@ -1,6 +1,6 @@
 [package]
 name = "idcfcli"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["itn3000 <itn3000@gmail.com>"]
 edition = "2018"
 
@@ -22,3 +22,8 @@ futures = "0.3"
 version = "0.11"
 default-features = false
 features = [ "rustls-tls" ]
+
+[dependencies.tokio]
+version = "1.21"
+# default-features = false
+features = [ "rt", "macros", "rt-multi-thread" ]
