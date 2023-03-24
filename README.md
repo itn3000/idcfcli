@@ -10,7 +10,7 @@ This is the single executable binary, so you download it from [release page](htt
 you can get global help by `--help` option. Here is the output.
 
 ```
-IDCF client 0.1.0
+IDCF client 0.3.0
 
 USAGE:
     idcfcli.exe [SUBCOMMAND]
@@ -30,7 +30,7 @@ IDCF compute API is related on manupilating IDCF computing(Virtual Machines).
 you can get help by `compute --help`.Here is the output.
 
 ```
-idcfcli.exe-compute 0.1.0
+idcfcli.exe-compute 0.3.0
 IDCF compute API client
 
 USAGE:

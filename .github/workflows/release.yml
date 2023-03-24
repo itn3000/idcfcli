@@ -1,0 +1,62 @@
+on:
+  release:
+    type:
+      - created
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform:
+          - ubuntu
+          - macos
+          - windows
+        include:
+          - platform: windows
+            osimage: windows-2019
+            binext: ".exe"
+            pdbext: ".pdb"
+            triplet: "x86_64-pc-windows-msvc"
+          - platform: ubuntu
+            osimage: ubuntu-20.04
+            triplet: "x86_64-unknown-linux-musl"
+            binext: ""
+          - platform: macos
+            osimage: macos-11
+            triplet: "aarch64-apple-darwin"
+            binext: ""
+    runs-on: "${{matrix.osimage}}"
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: build cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: install-toolchain
+        run: rustup toolchain install stable-${{matrix.triplet}}
+      - name: compile
+        run: cargo build --release
+      - name: collect-executable
+        uses: actions/upload-artifact@v3
+        with:
+          name: binary-${{matrix.triplet}}
+          path: target/release/idcfcli${{matrix.binext}}
+      - name: collect-pdb
+        uses: actions/upload-artifact@v3
+        with:
+          name: pdb-${{matrix.triplet}}
+          path: target/release/idcfcli.pdb
+        if: "matrix.platform == 'windows'"
+      - name: upload-release
+        run: gh release upload ${{github.ref_name}} target/release/idcfcli${{matrix.binext}}#idcfcli${{matrix.binext}}-${{matrix.triplet}}
+        env:
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: upload-release-pdb
+        run: gh release upload ${{github.ref_name}} target/release/idcfcli.pdb
+        if: "matrix.platform == 'windows'"

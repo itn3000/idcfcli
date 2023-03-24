@@ -123,14 +123,14 @@ pub fn create_app<'a, 'b>() -> App<'a, 'b> {
                 .short("a")
                 .long("apikey")
                 .value_name("API_KEY")
-                .help("IDCF api key, if not set, using IDCF_API_KEY environment variable"),
+                .help("IDCF api key, if not set, using IDCF_API_KEY or CLOUDSTACK_API_KEY environment variable"),
         )
         .arg(
             Arg::with_name("secretkey")
                 .short("s")
                 .long("secretkey")
                 .value_name("SECRET_KEY")
-                .help("IDCF secret key, if not set, using IDCF_SECRET_KEY environment variable"),
+                .help("IDCF secret key, if not set, using IDCF_SECRET_KEY or CLOUDSTACK_SECRET_KEY environment variable"),
         )
         .arg(
             Arg::with_name("input-json")
@@ -162,7 +162,7 @@ pub fn create_app<'a, 'b>() -> App<'a, 'b> {
                 .short("e")
                 .long("endpoint")
                 .value_name("END_POINT")
-                .help("if not set, IDCF_ENDPOINT environment variable will be used"),
+                .help("if not set, IDCF_ENDPOINT or CLOUDSTACK_API_URL environment variable will be used"),
         )
         .arg(
             Arg::with_name("output")
